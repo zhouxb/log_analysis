@@ -6,5 +6,7 @@ class DummynAnalysis(IPlugin):
     def apply(self, entries):
         for entry in entries:
             date, ip, domain = entry
+    def collect(self):
+        print "dummy collect"
     def deactivate(self):
         pass

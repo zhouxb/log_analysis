@@ -1,19 +1,15 @@
 #!/usr/bin/python
-import re
 import signal
 import sys
 
 import settings
 from multiprocessing import Queue, Process, cpu_count, current_process
-from multiprocessing.sharedctypes import Value
-from os import SEEK_END, SEEK_CUR
 from pyinotify import ProcessEvent, WatchManager, Notifier, IN_MODIFY
 from pymongo import Connection
 from yapsy.PluginManager import PluginManager
 
 from textfile import seek_newline, get_file_size, divide_into_chunks, divide_into_parts
 from dnslog import parse_log_entry
-from gather import gather_result
 
 class EventHandler(ProcessEvent):
     def __init__(self, end_pos, action):
@@ -95,30 +91,38 @@ def run_analysis(filename, analysis_chains, blocksize, proc_number, parts_num):
     for proc in analysis_procs:
         proc.join()
 
+def gather_result(plugins, path):
+    for p in plugins:
+        p.collect()
+
+def run_collector(plugins):
+    gather_proc = Process(target=gather_result, args=(plugins, "output/domain",))
+    gather_proc.start()
+    gather_proc.join()
+
 def load_plugins(path, db):
     manager = PluginManager(plugin_info_ext="info")
     manager.setPluginPlaces([path])
     manager.collectPlugins()
     for plugin in manager.getAllPlugins():
-        plugin.plugin_object.con = con
+        #plugin.plugin_object.con = con
         plugin.plugin_object.activate()
         yield plugin.plugin_object
 
 def signal_handler(signal, frame):
         print 'You pressed Ctrl+C!'
         sys.exit(0)
+
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     logfile     = settings.LOG_FILE_PATH
     plugin_path = settings.PLUGIN_PATH
-    procs_num    = settings.PROCESSORS_TO_USE
+    procs_num   = settings.PROCESSORS_TO_USE
     blocksize   = settings.BLOCK_SIZE
-    parts_num    = 8
+    parts_num   = 8
     con = Connection("localhost")
 
-    analysis_chains = [plugin for plugin in load_plugins(plugin_path, con)]
-    run_analysis(logfile, analysis_chains, blocksize, procs_num, parts_num)
-    gather_proc = Process(target=gather_result, args=("output",))
-    gather_proc.start()
-    gather_proc.join()
+    plugins = [plugin for plugin in load_plugins(plugin_path, con)]
+    run_analysis(logfile, plugins, blocksize, procs_num, parts_num)
+    run_collector(plugins)
