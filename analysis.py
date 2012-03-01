@@ -91,12 +91,12 @@ def run_analysis(filename, analysis_chains, blocksize, proc_number, parts_num):
     for proc in analysis_procs:
         proc.join()
 
-def gather_result(plugins, path):
+def collect_result(plugins):
     for p in plugins:
         p.collect()
 
 def run_collector(plugins):
-    gather_proc = Process(target=gather_result, args=(plugins, "output/domain",))
+    gather_proc = Process(target=collect_result, args=(plugins, ))
     gather_proc.start()
     gather_proc.join()
 

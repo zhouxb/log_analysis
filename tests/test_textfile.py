@@ -1,9 +1,11 @@
 import os
 import unittest
 import textfile
+from util import ensure_directory
 
 class TestGetFileSize(unittest.TestCase):
     def setUp(self):
+        ensure_directory("tmp")
         self.file = "tmp/file.log"
         os.system("touch %s" % self.file)
 
@@ -20,6 +22,7 @@ class TestGetFileSize(unittest.TestCase):
 
 class TestSeekNewLine(unittest.TestCase):
     def setUp(self):
+        ensure_directory("tmp")
         self.file = "tmp/file.log"
         os.system("touch %s" % self.file)
 
@@ -48,6 +51,7 @@ class TestSeekNewLine(unittest.TestCase):
 
 class TestDvideChunk(unittest.TestCase):
     def setUp(self):
+        ensure_directory("tmp")
         self.file = "tmp/file.log"
         os.system("touch %s" % self.file)
 
@@ -70,6 +74,7 @@ class TestDvideChunk(unittest.TestCase):
 
 class TestDivideIntoNParts(unittest.TestCase):
     def setUp(self):
+        ensure_directory("tmp")
         self.file = "tmp/file.log"
         os.system("touch %s" % self.file)
 
