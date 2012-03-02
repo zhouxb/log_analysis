@@ -1,5 +1,6 @@
 *.pyc
 *.log
 tmp
+tags
 output/*
 *.*.swp
