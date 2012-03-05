@@ -26,7 +26,7 @@ class MonitCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.IC
 class PreprocessCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
         filename, logger  = note.body
-        logger.info("done some preproces with %s" % filename)
+        logger.info("doing some preproces with %s" % filename)
         self.sendNotification(main.AppFacade.ANALYSIS, (filename, logger))
 
 class AnalysisCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):

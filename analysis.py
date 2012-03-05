@@ -22,7 +22,7 @@ def handle_chunk(filename, plugins, task_queue, logger):
 			begin, end = task_queue.get()
 			if (begin, end) == (0, 0):
 				break
-			logger.info("%d : handle a chunk bytes from %d to %d " % (current_process().pid, begin, end))
+			logger.info("process %d handles the chunk with bytes from %d to %d " % (current_process().pid, begin, end))
 			fp.seek(begin)
 			contents = fp.read(end - begin)
 			entries = parse_chunk(contents)
