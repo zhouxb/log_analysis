@@ -13,7 +13,7 @@ MONGODB_SERVER_PORT = 27017
 SMTP_SERVER         = "smtp.gmail.com"
 SMTP_PORT           = 587
 EMAIL_ACCOUNT       = "dreamersdw@gmail.com"
-EMAIL_PASSWORD      = "13ey0urself?yes"
+EMAIL_PASSWORD      = "xxxxxx"
 EMAIL_FROM          = "dreamersdw@gmail.com"
 EMAIL_TO            = ["dreamersdw@gmail.com"]
 
