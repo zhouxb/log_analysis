@@ -1,12 +1,13 @@
 from pymongo import Connection
 import puremvc.patterns.proxy
+import settings
+import dnslog
 
 class TempProxy(puremvc.patterns.proxy.Proxy):
     NAME = 'TempProxy'
 
     def __init__(self):
         super(TempProxy, self).__init__(TempProxy.NAME, [])
-        #self.connection = Connection('localhost', 27017)
 
     def change_data(self, v):
         self.data = v

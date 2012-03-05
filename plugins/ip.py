@@ -1,6 +1,7 @@
 import os
 import cPickle
 import dnslog
+import settings
 from pymongo import Connection
 from yapsy.IPlugin import IPlugin
 from collections import defaultdict
@@ -11,26 +12,26 @@ class IPAnalysis(IPlugin):
         self.outputpath = "output/ip/"
         ensure_directory(self.outputpath)
 
-    def analysis(self, entries):
-        collect = {}
-        for perid in dnslog.periods:
-            collect[perid] = defaultdict(int)
+    def analysis(self, entries, logger):
+		collect = {}
+		for perid in dnslog.periods:
+			collect[perid] = defaultdict(int)
 
-        round_minutes_by_5 = round_minutes_by(5)
-        for entry in entries:
-            date, ip, domain = entry
-            for perid, format in zip(dnslog.periods, dnslog.formats):
-                collect[perid][round_minutes_by_5(date).strftime(format) + "#" + ip] += 1
+		round_minutes_by_5 = round_minutes_by(5)
+		for entry in entries:
+			date, ip, domain = entry[dnslog.DATE], entry[dnslog.SOURCE_IP], entry[dnslog.DOMAIN]
+			for perid, format in zip(dnslog.periods, dnslog.formats):
+				collect[perid][round_minutes_by_5(date).strftime(format) + "#" + ip] += 1
 
-        cPickle.dump(collect, open(os.path.join(self.outputpath +  str(os.getpid()) + ".pickle"), "w"), 2)
+		cPickle.dump(collect, open(os.path.join(self.outputpath +  str(os.getpid()) + ".pickle"), "w"), 2)
 
-    def collect(self):
+    def collect(self, logger):
         def load_and_delete(f):
             full_path = self.outputpath + f
             result = cPickle.load(open(full_path))
             os.remove(full_path)
             return result
-        con = Connection("localhost")
+        con = Connection(settings.MONGODB_SERVER, settings.MONGODB_SERVER_PORT)
         db = con.ip
 
         periods = dnslog.periods
@@ -51,6 +52,6 @@ class IPAnalysis(IPlugin):
                 date, ip = key.split("#")
                 db[period].update({"ip":ip, "date": date}, {"$inc": {"count" : count}}, upsert=True)
 
-        print "ip analysis finished successfully"
+        logger.info( "ip analysis finished successfully")
     def deactivate(self):
         pass

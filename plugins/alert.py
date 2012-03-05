@@ -1,5 +1,7 @@
 import dnslog
+import mail
 from yapsy.IPlugin import IPlugin
+from multiprocessing import Process
 
 class DummynAnalysis(IPlugin):
     def activate(self):
@@ -8,6 +10,8 @@ class DummynAnalysis(IPlugin):
         for entry in entries:
             date, ip, domain = entry[dnslog.DATE], entry[dnslog.SOURCE_IP], entry[dnslog.DOMAIN]
     def collect(self, logger):
-        logger.info("dummy analysis finished successfully")
+        logger.info( "alert analysis finished successfully")
+        mail_proc = Process(target=mail.send_email, args=("test", ))
+        mail_proc.start()
     def deactivate(self):
         pass

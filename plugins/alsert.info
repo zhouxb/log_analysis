@@ -1,0 +1,3 @@
+[Core]
+Name = Domain Analysiser
+Module = alert
