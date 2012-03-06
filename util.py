@@ -1,5 +1,6 @@
-import datetime
 import os
+import datetime
+import cPickle
 
 def round_num_by(n):
     '''
@@ -20,7 +21,6 @@ def round_minutes_by(n):
     def inner(date):
         return datetime.datetime(date.year, date.month, date.day, date.hour, round_num_by_n(date.minute))
     return inner
-
 
 def upsert(dict1, dict2):
     '''
@@ -43,3 +43,16 @@ def ensure_directory(directory):
             return func(*args, **argkw)
         return inner
     return _ensure_directory
+
+def load_and_delete(full_path):
+    '''
+    '''
+    result = cPickle.load(open(full_path))
+    os.remove(full_path)
+    return result
+
+def listdir(path):
+    '''
+    List dir with path as prefix
+    '''
+    return map(lambda f: os.path.join(path, f), os.listdir(path))
