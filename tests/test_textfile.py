@@ -1,12 +1,15 @@
 import os
 import unittest
 import textfile
+import settings
 from util import ensure_directory
 
+tmpdir = os.path.join(settings.APP_DIR, "tmp")
+
 class TestGetFileSize(unittest.TestCase):
+    @ensure_directory(tmpdir)
     def setUp(self):
-        ensure_directory("tmp")
-        self.file = "tmp/file.log"
+        self.file = os.path.join(tmpdir, "file.log")
         os.system("touch %s" % self.file)
 
     def tearDown(self):
@@ -21,9 +24,9 @@ class TestGetFileSize(unittest.TestCase):
         self.assertEqual(textfile.get_file_size(self.file), 5)
 
 class TestSeekNewLine(unittest.TestCase):
+    @ensure_directory(tmpdir)
     def setUp(self):
-        ensure_directory("tmp")
-        self.file = "tmp/file.log"
+        self.file = os.path.join(tmpdir, "file.log")
         os.system("touch %s" % self.file)
 
     def tearDown(self):
@@ -50,9 +53,9 @@ class TestSeekNewLine(unittest.TestCase):
             self.assertEqual(textfile.seek_newline(f, 11), 11)
 
 class TestDvideChunk(unittest.TestCase):
+    @ensure_directory(tmpdir)
     def setUp(self):
-        ensure_directory("tmp")
-        self.file = "tmp/file.log"
+        self.file = os.path.join(tmpdir, "file.log")
         os.system("touch %s" % self.file)
 
     def tearDown(self):
@@ -73,9 +76,9 @@ class TestDvideChunk(unittest.TestCase):
         self.assertEqual([item for item in textfile.divide_into_chunks(self.file, 20)], [(0, 12),(12, 26)])
 
 class TestDivideIntoNParts(unittest.TestCase):
+    @ensure_directory(tmpdir)
     def setUp(self):
-        ensure_directory("tmp")
-        self.file = "tmp/file.log"
+        self.file = os.path.join(tmpdir, "file.log")
         os.system("touch %s" % self.file)
 
     def tearDown(self):

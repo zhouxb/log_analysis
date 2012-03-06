@@ -14,8 +14,8 @@ class QueueLogger:
     def error(self, msg):
         self.log_queue.put(("ERROR", msg))
 
+@ util.ensure_directory(settings.APP_LOG_DIR)
 def run_log(log_queue):
-    util.ensure_directory(settings.APP_LOG_DIR)
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)

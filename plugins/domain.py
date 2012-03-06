@@ -11,10 +11,11 @@ from itertools import product
 
 
 class DomainAnalysis(IPlugin):
+    OUTPUTPATH = os.path.join(settings.APP_DIR, "output/domain")
     def activate(self):
-        self.outputpath = "output/domain/"
-        ensure_directory(self.outputpath)
+        pass
 
+    @ensure_directory(OUTPUTPATH)
     def analysis(self, entries, logger):
         collect = {}
         for period in dnslog.periods:
@@ -26,11 +27,12 @@ class DomainAnalysis(IPlugin):
                 for perid, format in zip(dnslog.periods, dnslog.formats):
                     collect[perid][round_minutes_by_5(date).strftime(format) + "#" + domain] += 1
 
-        cPickle.dump(collect, open(os.path.join(self.outputpath, str(os.getpid()) + ".pickle"), "w"), 2)
+        cPickle.dump(collect, open(os.path.join(DomainAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), 2)
 
+    @ensure_directory(OUTPUTPATH)
     def collect(self, logger):
         def load_and_delete(f):
-            full_path = self.outputpath + f
+            full_path = os.path.join(DomainAnalysis.OUTPUTPATH, f)
             result = cPickle.load(open(full_path))
             os.remove(full_path)
             return result
@@ -43,7 +45,7 @@ class DomainAnalysis(IPlugin):
         for period in periods:
             collection[period] = Counter()
 
-        results = map(load_and_delete, os.listdir(self.outputpath))
+        results = map(load_and_delete, os.listdir(DomainAnalysis.OUTPUTPATH))
 
         for result, period in product(results, periods):
             collection[period].update(result[period])
@@ -54,5 +56,6 @@ class DomainAnalysis(IPlugin):
                 date, domain = key.split("#")
                 db[period].update({"domain":domain, "date": date}, {"$inc": {"count" : count}}, upsert=True)
         logger.info( "domain analysis finished successfully")
+
     def deactivate(self):
         pass

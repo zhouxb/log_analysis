@@ -6,14 +6,14 @@ from textfile import divide_into_chunks, divide_into_parts
 from dnslog import parse_chunk
 
 
-def divide_chunks(filename, blocksize, proc_number, queue):
+def divide_chunks(filename, blocksize, proc_num, queue):
 	map(lambda chunk: queue.put(chunk), divide_into_chunks(filename, blocksize))
-	for _ in range(proc_number):
+	for _ in range(proc_num):
 		queue.put((0, 0))
 
-def divide_parts(filename, num,  task_queue):
-	map(lambda part: task_queue.put(part), divide_into_parts(filename, num))
-	for _ in range(num):
+def divide_parts(filename, part_num,  task_queue):
+	map(lambda part: task_queue.put(part), divide_into_parts(filename, part_num))
+	for _ in range(part_num):
 		task_queue.put((0, 0))
 
 def handle_chunk(filename, plugins, task_queue, logger):

@@ -8,9 +8,11 @@ from collections import defaultdict
 from util import round_minutes_by, ensure_directory, upsert
 
 class IPAnalysis(IPlugin):
+    OUTPUTPATH = os.path.join(settings.APP_DIR, "output/ip")
+
+    @ensure_directory(OUTPUTPATH)
     def activate(self):
-        self.outputpath = "output/ip/"
-        ensure_directory(self.outputpath)
+        pass
 
     def analysis(self, entries, logger):
 		collect = {}
@@ -23,11 +25,11 @@ class IPAnalysis(IPlugin):
 			for perid, format in zip(dnslog.periods, dnslog.formats):
 				collect[perid][round_minutes_by_5(date).strftime(format) + "#" + ip] += 1
 
-		cPickle.dump(collect, open(os.path.join(self.outputpath +  str(os.getpid()) + ".pickle"), "w"), 2)
+		cPickle.dump(collect, open(os.path.join(IPAnalysis.OUTPUTPATH,  str(os.getpid()) + ".pickle"), "w"), 2) 
 
     def collect(self, logger):
         def load_and_delete(f):
-            full_path = self.outputpath + f
+            full_path = os.path.join(IPAnalysis.OUTPUTPATH,  f)
             result = cPickle.load(open(full_path))
             os.remove(full_path)
             return result
@@ -40,7 +42,7 @@ class IPAnalysis(IPlugin):
         for period in periods:
             collection[period] = {}
 
-        results = map(load_and_delete,  os.listdir(self.outputpath))
+        results = map(load_and_delete,  os.listdir(IPAnalysis.OUTPUTPATH))
 
         for result in results:
             for period in periods:
@@ -53,5 +55,6 @@ class IPAnalysis(IPlugin):
                 db[period].update({"ip":ip, "date": date}, {"$inc": {"count" : count}}, upsert=True)
 
         logger.info( "ip analysis finished successfully")
+    @ensure_directory(OUTPUTPATH)
     def deactivate(self):
         pass

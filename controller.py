@@ -1,19 +1,19 @@
-import puremvc.patterns.command
-import puremvc.interfaces
-import settings
-import main, model
+import main
 import monitor
 import analysis
 import log
+import settings
+import puremvc.patterns.command
+import puremvc.interfaces
 
-from multiprocessing import Queue, Process
+import multiprocessing
 
 class StartupCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
-		log_queue = Queue()
+		log_queue = multiprocessing.Queue()
 		logger = log.QueueLogger(log_queue)
 
-		log_proc = Process(target=log.run_log, args=(log_queue,))
+		log_proc = multiprocessing.Process(target=log.run_log, args=(log_queue,))
 		log_proc.start()
 
 		self.sendNotification(main.AppFacade.MONIT, logger)
