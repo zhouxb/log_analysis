@@ -4,6 +4,7 @@ import dnslog
 import util
 import settings
 import util
+import log
 import pymongo
 from yapsy.IPlugin import IPlugin
 
@@ -22,7 +23,7 @@ class NewDomainAnalysis(IPlugin):
         self.old_domain_cache = self.load_old_domains_cache(old_domain_cache_path)
 
     @util.ensure_directory(OUTPUTPATH)
-    def analysis(self, entries, logger):
+    def analysis(self, entries):
         round_minutes_by_5 = util.round_minutes_by(5)
         new_domains = {}
         for entry in entries:
@@ -32,7 +33,7 @@ class NewDomainAnalysis(IPlugin):
         cPickle.dump(new_domains, open(os.path.join(NewDomainAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), 2)
 
     @util.ensure_directory(OUTPUTPATH)
-    def collect(self, logger):
+    def collect(self):
         con = pymongo.Connection(settings.MONGODB_SERVER, settings.MONGODB_SERVER_PORT)
         db = con.newdomain
 
@@ -47,6 +48,7 @@ class NewDomainAnalysis(IPlugin):
             new_domains.update(self.old_domain_cache)
             cPickle.dump(new_domains, open(os.path.join(NewDomainAnalysis.OUTPUTPATH, "olddomain.pickle"), "w"), 2)
 
+        logger = log.get_global_logger()
         logger.info("newdomain analysis finished successfully")
 
     def combine_same_domain(self, results):

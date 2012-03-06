@@ -4,6 +4,8 @@ import settings
 import os
 import util
 
+global_log_queue = Queue()
+
 class QueueLogger:
     def __init__(self, log_queue):
         self.log_queue = log_queue
@@ -13,6 +15,9 @@ class QueueLogger:
         self.log_queue.put(("WARNING", msg))
     def error(self, msg):
         self.log_queue.put(("ERROR", msg))
+
+def get_global_logger():
+    return QueueLogger(global_log_queue)
 
 @ util.ensure_directory(settings.APP_LOG_DIR)
 def run_log(log_queue):

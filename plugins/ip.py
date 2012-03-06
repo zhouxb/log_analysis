@@ -2,6 +2,7 @@ import os
 import cPickle
 import dnslog
 import settings
+import log
 from pymongo import Connection
 from yapsy.IPlugin import IPlugin
 from collections import defaultdict
@@ -14,7 +15,7 @@ class IPAnalysis(IPlugin):
     def activate(self):
         pass
 
-    def analysis(self, entries, logger):
+    def analysis(self, entries):
 		collect = {}
 		for perid in dnslog.periods:
 			collect[perid] = defaultdict(int)
@@ -27,7 +28,7 @@ class IPAnalysis(IPlugin):
 
 		cPickle.dump(collect, open(os.path.join(IPAnalysis.OUTPUTPATH,  str(os.getpid()) + ".pickle"), "w"), 2) 
 
-    def collect(self, logger):
+    def collect(self):
         def load_and_delete(f):
             full_path = os.path.join(IPAnalysis.OUTPUTPATH,  f)
             result = cPickle.load(open(full_path))
@@ -54,6 +55,7 @@ class IPAnalysis(IPlugin):
                 date, ip = key.split("#")
                 db[period].update({"ip":ip, "date": date}, {"$inc": {"count" : count}}, upsert=True)
 
+        logger = log.get_global_logger()
         logger.info( "ip analysis finished successfully")
     @ensure_directory(OUTPUTPATH)
     def deactivate(self):

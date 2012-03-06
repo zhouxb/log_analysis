@@ -10,43 +10,43 @@ import multiprocessing
 
 class StartupCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
-		log_queue = multiprocessing.Queue()
+		log_queue = log.global_log_queue
 		logger = log.QueueLogger(log_queue)
 
 		log_proc = multiprocessing.Process(target=log.run_log, args=(log_queue,))
 		log_proc.start()
 
-		self.sendNotification(main.AppFacade.MONIT, logger)
+		self.sendNotification(main.AppFacade.MONIT)
 
 class MonitCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
-        logger = note.body
-        monitor.monit_directory(settings.DNS_LOG_DIR, lambda filename: self.sendNotification(main.AppFacade.PREPROCESS, (filename, logger)))
+        monitor.monit_directory(settings.DNS_LOG_DIR, lambda filename: self.sendNotification(main.AppFacade.PREPROCESS, filename))
 
 class PreprocessCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
-        filename, logger  = note.body
+        filename = note.body
+        logger = log.get_global_logger()
         logger.info("doing some preproces with %s" % filename)
-        self.sendNotification(main.AppFacade.ANALYSIS, (filename, logger))
+        self.sendNotification(main.AppFacade.ANALYSIS, filename)
 
 class AnalysisCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
-        filename, logger = note.body
+        filename  = note.body
         plugin_path = settings.PLUGINS_PATH
         parts_num   = settings.PARTS_NUMBER
 
         plugins = [plugin for plugin in analysis.load_plugins(plugin_path)]
-        analysis.run_analysis(filename, plugins, parts_num, logger)
-        self.sendNotification(main.AppFacade.COLLECT, (plugins, logger))
+        analysis.run_analysis(filename, plugins, parts_num)
+        self.sendNotification(main.AppFacade.COLLECT, plugins)
 
 class CollectCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
-        plugins, log_queue = note.body
-        analysis.run_collector(plugins, log_queue)
-        self.sendNotification(main.AppFacade.POSTPROCESS, log_queue)
+        plugins  = note.body
+        analysis.run_collector(plugins)
+        self.sendNotification(main.AppFacade.POSTPROCESS)
 
 class PostprocessCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
-        logger = note.body
+        logger = log.get_global_logger()
         logger.info("some postprocess work")
 

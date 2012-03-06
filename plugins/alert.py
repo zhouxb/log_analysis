@@ -4,6 +4,7 @@ import dnslog
 import mail
 import settings
 import jinja2
+import log
 from multiprocessing import Process
 from util import round_minutes_by, ensure_directory, upsert
 from pymongo import Connection
@@ -17,7 +18,7 @@ class AlertAnalysis(IPlugin):
         pass
 
     @ensure_directory(OUTPUTPATH)
-    def analysis(self, entries, logger):
+    def analysis(self, entries):
         collect = defaultdict(int)
         round_minutes_by_5 = round_minutes_by(5)
         for entry in entries:
@@ -28,7 +29,7 @@ class AlertAnalysis(IPlugin):
         cPickle.dump(collect, open(os.path.join(AlertAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), 2)
 
     @ensure_directory(OUTPUTPATH)
-    def collect(self, logger):
+    def collect(self):
         def load_and_delete(f):
             full_path = os.path.join(AlertAnalysis.OUTPUTPATH, f)
             result = cPickle.load(open(full_path))
@@ -50,6 +51,7 @@ class AlertAnalysis(IPlugin):
         msg = jinja2.Template(open(os.path.join(settings.TEMPLATE_DIR, "alert_email.tpl")).read().decode("utf-8")).render(alerts=alerts)
         email_proc = Process(target=mail.send_email, args=(msg,))
         email_proc.start()
+        logger = log.get_global_logger()
         logger.info("alert analysis finished successfully")
     def deactivate(self):
         pass

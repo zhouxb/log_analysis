@@ -2,6 +2,7 @@ import os
 import cPickle
 import dnslog
 import settings
+import log
 
 from collections import defaultdict, Counter
 from pymongo import Connection
@@ -16,7 +17,7 @@ class DomainAnalysis(IPlugin):
         pass
 
     @ensure_directory(OUTPUTPATH)
-    def analysis(self, entries, logger):
+    def analysis(self, entries):
         collect = {}
         for period in dnslog.periods:
             collect[period] = defaultdict(int)
@@ -30,7 +31,7 @@ class DomainAnalysis(IPlugin):
         cPickle.dump(collect, open(os.path.join(DomainAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), 2)
 
     @ensure_directory(OUTPUTPATH)
-    def collect(self, logger):
+    def collect(self):
         def load_and_delete(f):
             full_path = os.path.join(DomainAnalysis.OUTPUTPATH, f)
             result = cPickle.load(open(full_path))
@@ -55,6 +56,7 @@ class DomainAnalysis(IPlugin):
             for key, count in collection[period].items():
                 date, domain = key.split("#")
                 db[period].update({"domain":domain, "date": date}, {"$inc": {"count" : count}}, upsert=True)
+        logger = log.get_global_logger()
         logger.info( "domain analysis finished successfully")
 
     def deactivate(self):

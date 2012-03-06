@@ -1,4 +1,6 @@
 #!/usr/bin/python
+import log
+
 from multiprocessing import Queue, Process, current_process
 from yapsy.PluginManager import PluginManager
 
@@ -16,7 +18,8 @@ def divide_parts(filename, part_num,  task_queue):
 	for _ in range(part_num):
 		task_queue.put((0, 0))
 
-def handle_chunk(filename, plugins, task_queue, logger):
+def handle_chunk(filename, plugins, task_queue):
+    logger = log.get_global_logger()
     while True:
         with open(filename) as fp:
 			begin, end = task_queue.get()
@@ -27,22 +30,22 @@ def handle_chunk(filename, plugins, task_queue, logger):
 			contents = fp.read(end - begin)
 			entries = parse_chunk(contents)
 			for p in plugins:
-				p.analysis(entries, logger)
+				p.analysis(entries)
 
-def run_analysis(filename, analysis_chains, parts_num, logger):
+def run_analysis(filename, analysis_chains, parts_num):
     task_queue = Queue()
 
     allocator_proc = Process(target=divide_parts, args=(filename, parts_num, task_queue))
     allocator_proc.start()
 
-    analysis_procs = [Process(target=handle_chunk, args=(filename, analysis_chains, task_queue, logger)) for i in range(parts_num)]
+    analysis_procs = [Process(target=handle_chunk, args=(filename, analysis_chains, task_queue)) for i in range(parts_num)]
     map(lambda proc: proc.start(), analysis_procs)
 
     allocator_proc.join()
     map(lambda proc: proc.join(), analysis_procs)
 
-def run_collector(plugins, log_queue):
-    collect_procs = [Process(target=p.collect, args=(log_queue,)) for p in plugins]
+def run_collector(plugins):
+    collect_procs = [Process(target=p.collect) for p in plugins]
     map(lambda proc: proc.start(), collect_procs)
     map(lambda proc: proc.join(), collect_procs)
 
