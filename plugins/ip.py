@@ -3,24 +3,24 @@ import cPickle
 import dnslog
 import settings
 import log
-from pymongo import Connection
-from yapsy.IPlugin import IPlugin
-from collections import defaultdict
-from util import round_minutes_by, ensure_directory, upsert
+import yapsy.IPlugin
+import collections
+import util
+import pymongo
 
-class IPAnalysis(IPlugin):
+class IPAnalysis(yapsy.IPlugin.IPlugin):
     OUTPUTPATH = os.path.join(settings.APP_DIR, "output/ip")
 
-    @ensure_directory(OUTPUTPATH)
     def activate(self):
         pass
 
+    @util.ensure_directory(OUTPUTPATH)
     def analysis(self, entries):
 		collect = {}
 		for perid in dnslog.periods:
-			collect[perid] = defaultdict(int)
+			collect[perid] = collections.defaultdict(int)
 
-		round_minutes_by_5 = round_minutes_by(5)
+		round_minutes_by_5 = util.round_minutes_by(5)
 		for entry in entries:
 			date, ip, domain = entry[dnslog.DATE], entry[dnslog.SOURCE_IP], entry[dnslog.DOMAIN]
 			for perid, format in zip(dnslog.periods, dnslog.formats):
@@ -29,25 +29,20 @@ class IPAnalysis(IPlugin):
 		cPickle.dump(collect, open(os.path.join(IPAnalysis.OUTPUTPATH,  str(os.getpid()) + ".pickle"), "w"), 2) 
 
     def collect(self):
-        def load_and_delete(f):
-            full_path = os.path.join(IPAnalysis.OUTPUTPATH,  f)
-            result = cPickle.load(open(full_path))
-            os.remove(full_path)
-            return result
-        con = Connection(settings.MONGODB_SERVER, settings.MONGODB_SERVER_PORT)
+        con = pymongo.Connection(settings.MONGODB_SERVER, settings.MONGODB_SERVER_PORT)
         db = con.ip
 
         periods = dnslog.periods
 
-        collection = defaultdict(int)
+        collection = collections.defaultdict(int)
         for period in periods:
             collection[period] = {}
 
-        results = map(load_and_delete,  os.listdir(IPAnalysis.OUTPUTPATH))
+        results = map(util.load_and_delete,  util.listdir(IPAnalysis.OUTPUTPATH))
 
         for result in results:
             for period in periods:
-                upsert(collection[period], result[period])
+                util.upsert(collection[period], result[period])
 
         for period in periods:
             db[period].ensure_index("ip")
@@ -57,6 +52,7 @@ class IPAnalysis(IPlugin):
 
         logger = log.get_global_logger()
         logger.info( "ip analysis finished successfully")
-    @ensure_directory(OUTPUTPATH)
+
+    @util.ensure_directory(OUTPUTPATH)
     def deactivate(self):
         pass

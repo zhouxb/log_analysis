@@ -1,28 +1,27 @@
-import os
 import cPickle
+import collections
+import itertools
+import os
+import pymongo
+import yapsy.IPlugin
+
 import dnslog
-import settings
 import log
+import settings
+import util
 
-from collections import defaultdict, Counter
-from pymongo import Connection
-from util import round_minutes_by, ensure_directory
-from yapsy.IPlugin import IPlugin
-from itertools import product
-
-
-class DomainAnalysis(IPlugin):
+class DomainAnalysis(yapsy.IPlugin.IPlugin):
     OUTPUTPATH = os.path.join(settings.APP_DIR, "output/domain")
     def activate(self):
         pass
 
-    @ensure_directory(OUTPUTPATH)
+    @util.ensure_directory(OUTPUTPATH)
     def analysis(self, entries):
         collect = {}
         for period in dnslog.periods:
-            collect[period] = defaultdict(int)
+            collect[period] = collections.Counter()
 
-        round_minutes_by_5 = round_minutes_by(5)
+        round_minutes_by_5 = util.round_minutes_by(5)
         for entry in entries:
                 date, ip, domain = entry[dnslog.DATE], entry[dnslog.SOURCE_IP], entry[dnslog.DOMAIN]
                 for perid, format in zip(dnslog.periods, dnslog.formats):
@@ -30,25 +29,20 @@ class DomainAnalysis(IPlugin):
 
         cPickle.dump(collect, open(os.path.join(DomainAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), 2)
 
-    @ensure_directory(OUTPUTPATH)
+    @util.ensure_directory(OUTPUTPATH)
     def collect(self):
-        def load_and_delete(f):
-            full_path = os.path.join(DomainAnalysis.OUTPUTPATH, f)
-            result = cPickle.load(open(full_path))
-            os.remove(full_path)
-            return result
-        con = Connection(settings.MONGODB_SERVER, settings.MONGODB_SERVER_PORT)
+        con = pymongo.Connection(settings.MONGODB_SERVER, settings.MONGODB_SERVER_PORT)
         db = con.domain
 
         periods = dnslog.periods
 
         collection = {}
         for period in periods:
-            collection[period] = Counter()
+            collection[period] = collections.Counter()
 
-        results = map(load_and_delete, os.listdir(DomainAnalysis.OUTPUTPATH))
+        results = map(util.load_and_delete, util.listdir(DomainAnalysis.OUTPUTPATH))
 
-        for result, period in product(results, periods):
+        for result, period in itertools.product(results, periods):
             collection[period].update(result[period])
 
         for period in periods:
@@ -56,6 +50,7 @@ class DomainAnalysis(IPlugin):
             for key, count in collection[period].items():
                 date, domain = key.split("#")
                 db[period].update({"domain":domain, "date": date}, {"$inc": {"count" : count}}, upsert=True)
+
         logger = log.get_global_logger()
         logger.info( "domain analysis finished successfully")
 

@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 periods = ["minutely",			"hourly",     	"daily",	"weekly",	"monthly",	"yearly"]
-formats = ["%y-%m-%d %H:%M",	"%y-%m-%d %H",	"%y-%m-%d",	"%y-%W",	"%y-%m", 	"%y"    ]
+formats = ["%Y%m%d%H%M",	"%Y%m%d%H",	"%Y%m%d",	"%Y%W",	"%Y%m", 	"%Y"    ]
 
 DATE                     = 0
 SOURCE_IP                = 1

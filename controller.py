@@ -22,6 +22,7 @@ class MonitCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.IC
     def execute(self, note):
         monitor.monit_directory(settings.DNS_LOG_DIR, lambda filename: self.sendNotification(main.AppFacade.PREPROCESS, filename))
 
+
 class PreprocessCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
     def execute(self, note):
         filename = note.body
