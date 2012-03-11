@@ -1,43 +1,53 @@
-from multiprocessing import Queue
 import logging
 import settings
 import os
 import util
+import multiprocessing
 
-global_log_queue = Queue()
+global_log_queue = multiprocessing.Queue()
 
-class QueueLogger:
-    def __init__(self, log_queue):
-        self.log_queue = log_queue
-    def info(self, msg):
-        self.log_queue.put(("INFO", msg))
-    def warning(self, msg):
-        self.log_queue.put(("WARNING", msg))
-    def error(self, msg):
-        self.log_queue.put(("ERROR", msg))
+class QueueHandler(logging.Handler):
+    '''
+    '''
+    def __init__(self, queue):
+        logging.Handler.__init__(self)
+        self.queue = queue
+        
+    def emit(self, record):
+        self.queue.put(record)
 
-def get_global_logger():
-    return QueueLogger(global_log_queue)
-
-@ util.ensure_directory(settings.APP_LOG_DIR)
-def run_log(log_queue):
+def setup_logger():
+    '''
+    '''
+    handler = QueueHandler(global_log_queue)
+    handler.setLevel(settings.APP_LOG_LEVEL)
 
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(settings.APP_LOG_LEVEL)
+    logger.addHandler(handler)
+
+@ util.ensure_directory(settings.APP_LOG_DIR)
+def run_log_listener(log_queue):
+    '''
+    '''
+    logger = logging.getLogger()
+    logger.setLevel(settings.APP_LOG_LEVEL)
 
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
     fh = logging.FileHandler(os.path.join(settings.APP_LOG_DIR, settings.APP_LOG_FILENAME))
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(settings.APP_LOG_LEVEL)
     fh.setFormatter(formatter)
 
+    sh = logging.StreamHandler()
+    sh.setLevel(settings.APP_LOG_LEVEL)
+    sh.setFormatter(formatter)
+
+    # Don't remove this line
+    logger.handlers = []
+    logger.addHandler(sh)
     logger.addHandler(fh)
 
-    log_table = {
-        "INFO"     : lambda msg: logger.info(msg),
-        "WARNING"  : lambda msg: logger.warning(msg),
-        "ERROR"    : lambda msg: logger.error(msg),
-    }
     while True:
-       level, msg = log_queue.get()
-       log_table[level](msg)
+       record = log_queue.get()
+       logger.handle(record)

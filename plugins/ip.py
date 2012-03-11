@@ -2,7 +2,8 @@ import os
 import cPickle
 import dnslog
 import settings
-import log
+import logging
+import uuid
 import yapsy.IPlugin
 import collections
 import util
@@ -26,7 +27,7 @@ class IPAnalysis(yapsy.IPlugin.IPlugin):
 			for perid, format in zip(dnslog.periods, dnslog.formats):
 				collect[perid][round_minutes_by_5(date).strftime(format) + "#" + ip] += 1
 
-		cPickle.dump(collect, open(os.path.join(IPAnalysis.OUTPUTPATH,  str(os.getpid()) + ".pickle"), "w"), 2) 
+		cPickle.dump(collect, open(os.path.join(IPAnalysis.OUTPUTPATH,  "%s.pickle" % uuid.uuid4().hex), "w"), 2) 
 
     def collect(self):
         con = pymongo.Connection(settings.MONGODB_SERVER, settings.MONGODB_SERVER_PORT)
@@ -50,8 +51,7 @@ class IPAnalysis(yapsy.IPlugin.IPlugin):
                 date, ip = key.split("#")
                 db[period].update({"ip":ip, "date": date}, {"$inc": {"count" : count}}, upsert=True)
 
-        logger = log.get_global_logger()
-        logger.info( "ip analysis finished successfully")
+        logging.info( "ip analysis finished successfully")
 
     @util.ensure_directory(OUTPUTPATH)
     def deactivate(self):

@@ -3,7 +3,8 @@ import cPickle
 import dnslog
 import util
 import settings
-import log
+import uuid
+import logging
 import pymongo
 from yapsy.IPlugin import IPlugin
 
@@ -24,7 +25,7 @@ class NewDomainAnalysis(IPlugin):
     def analysis(self, entries):
         round_minutes_by_5 = util.round_minutes_by(5)
         candidate_domains = {entry[dnslog.DOMAIN] : round_minutes_by_5(entry[dnslog.DATE]).strftime(dnslog.formats[0]) for entry in entries}
-        cPickle.dump(candidate_domains, open(os.path.join(NewDomainAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), cPickle.HIGHEST_PROTOCOL)
+        cPickle.dump(candidate_domains, open(os.path.join(NewDomainAnalysis.OUTPUTPATH, "%s.pickle" % uuid.uuid4().hex), "w"), cPickle.HIGHEST_PROTOCOL)
 
     @util.ensure_directory(OUTPUTPATH)
     def collect(self):
@@ -44,8 +45,7 @@ class NewDomainAnalysis(IPlugin):
             db.newdomain.insert(batch_data, continue_on_error=True)
             cPickle.dump(new_domains | self.domain_cache , open(os.path.join(NewDomainAnalysis.OUTPUTPATH, "domaincache.pickle"), "w"), cPickle.HIGHEST_PROTOCOL)
 
-        logger = log.get_global_logger()
-        logger.info("newdomain analysis finished successfully")
+        logging.info("newdomain analysis finished successfully")
 
     def deactivate(self):
         pass

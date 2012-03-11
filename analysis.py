@@ -1,47 +1,39 @@
 #!/usr/bin/python
-import log
+import logging
+import util
+import dnslog
+import os
 
-from multiprocessing import Queue, Process, current_process
-from yapsy.PluginManager import PluginManager
+import yapsy.PluginManager
+from multiprocessing import Queue, Process
 
-from textfile import divide_into_chunks, divide_into_parts
-from dnslog import parse_chunk
-
-
-def divide_chunks(filename, blocksize, proc_num, queue):
-	map(lambda chunk: queue.put(chunk), divide_into_chunks(filename, blocksize))
+def assign_task(filename, task_size, proc_num, task_queue):
+    with open(filename) as f:
+        for lines in util.split_every(task_size, f):
+            entries = dnslog.parse_chunk(lines)
+            task_queue.put(entries)
 	for _ in range(proc_num):
-		queue.put((0, 0))
+		task_queue.put([])
 
-def divide_parts(filename, part_num,  task_queue):
-	map(lambda part: task_queue.put(part), divide_into_parts(filename, part_num))
-	for _ in range(part_num):
-		task_queue.put((0, 0))
-
-def handle_chunk(filename, plugins, task_queue):
-    logger = log.get_global_logger()
+def handle_task(plugins, task_queue):
     while True:
-        with open(filename) as fp:
-			begin, end = task_queue.get()
-			if (begin, end) == (0, 0):
-				break
-			logger.info("process %d handles the chunk with bytes from %d to %d " % (current_process().pid, begin, end))
-			fp.seek(begin)
-			contents = fp.read(end - begin)
-			entries = parse_chunk(contents)
-			for p in plugins:
-				p.analysis(entries)
+        task = task_queue.get()
+        if not task:
+            break
+        logging.debug("process [%d] handle a chunk with %d lines" % (os.getpid(), len(task)))
+        for p in plugins:
+            p.analysis(task)
 
-def run_analysis(filename, analysis_chains, parts_num):
+def run_analysis(filename, plugins, task_size, proc_num):
     task_queue = Queue()
 
-    allocator_proc = Process(target=divide_parts, args=(filename, parts_num, task_queue))
-    allocator_proc.start()
+    allocate_proc = Process(target=assign_task, args=(filename, task_size, proc_num, task_queue))
+    allocate_proc.start()
 
-    analysis_procs = [Process(target=handle_chunk, args=(filename, analysis_chains, task_queue)) for i in range(parts_num)]
+    analysis_procs = [Process(target=handle_task, args=(plugins, task_queue)) for i in range(proc_num)]
     map(lambda proc: proc.start(), analysis_procs)
 
-    allocator_proc.join()
+    allocate_proc.join()
     map(lambda proc: proc.join(), analysis_procs)
 
 def run_collector(plugins):
@@ -50,7 +42,7 @@ def run_collector(plugins):
     map(lambda proc: proc.join(), collect_procs)
 
 def load_plugins(path):
-    manager = PluginManager(plugin_info_ext="info")
+    manager = yapsy.PluginManager.PluginManager(plugin_info_ext="info")
     manager.setPluginPlaces([path])
     manager.collectPlugins()
     for plugin in manager.getAllPlugins():

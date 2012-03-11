@@ -33,6 +33,6 @@ def parse_log_line(line):
     uniqe_id                 = parts[UNIQUE_ID]
     return (date, ip, domain, whitelist_location, resovled_ip, whitelist_location_names, recod_type, resovle_state, unknown_field,  resolve_detail, uniqe_id)
 
-def parse_chunk(contents):
-    entries = [parse_log_line(line) for line in contents.splitlines() if not line.count("flexi-dns:")]
+def parse_chunk(lines):
+    entries = [parse_log_line(line) for line in lines if not line.count("flexi-dns:")]
     return entries

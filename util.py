@@ -1,6 +1,7 @@
 import os
 import datetime
 import cPickle
+import itertools
 
 def round_num_by(n):
     '''
@@ -14,8 +15,7 @@ def round_num_by(n):
     return inner
 
 def round_minutes_by(n):
-    '''
-    round minutes
+    ''' round minutes
     '''
     round_num_by_n = round_num_by(n)
     def inner(date):
@@ -34,7 +34,8 @@ def upsert(dict1, dict2):
 
 def ensure_directory(directory):
     '''
-    Ensuring the existance of the directory. If the directory is not exist, create it
+    Ensuring the existance of the directory. If the directory is not exist,
+    create it
     '''
     def _ensure_directory(func):
         def inner(*args, **argkw):
@@ -46,6 +47,7 @@ def ensure_directory(directory):
 
 def load_and_delete(full_path):
     '''
+    Load the pickle file and delete it
     '''
     result = cPickle.load(open(full_path))
     os.remove(full_path)
@@ -56,3 +58,15 @@ def listdir(path):
     List dir with path as prefix
     '''
     return map(lambda f: os.path.join(path, f), os.listdir(path))
+
+def split_every(n, iterable):
+    '''
+    Splits a list into length-n pieces.  The last piece will be shorter if n
+    does not evenly divide the length of the list.
+    '''
+    it = iter(iterable)
+    while True:
+        n_items = list(itertools.islice(it, n))
+        if not n_items:
+            break
+        yield n_items

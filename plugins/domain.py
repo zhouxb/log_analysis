@@ -3,10 +3,11 @@ import collections
 import itertools
 import os
 import pymongo
+import uuid
 import yapsy.IPlugin
 
 import dnslog
-import log
+import logging
 import settings
 import util
 
@@ -27,7 +28,7 @@ class DomainAnalysis(yapsy.IPlugin.IPlugin):
                 for perid, format in zip(dnslog.periods, dnslog.formats):
                     collect[perid][round_minutes_by_5(date).strftime(format) + "#" + domain] += 1
 
-        cPickle.dump(collect, open(os.path.join(DomainAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), 2)
+        cPickle.dump(collect, open(os.path.join(DomainAnalysis.OUTPUTPATH, "%s.pickle" % uuid.uuid4().hex), "w"), 2)
 
     @util.ensure_directory(OUTPUTPATH)
     def collect(self):
@@ -51,8 +52,7 @@ class DomainAnalysis(yapsy.IPlugin.IPlugin):
                 date, domain = key.split("#")
                 db[period].update({"domain":domain, "date": date}, {"$inc": {"count" : count}}, upsert=True)
 
-        logger = log.get_global_logger()
-        logger.info( "domain analysis finished successfully")
+        logging.info( "domain analysis finished successfully")
 
     def deactivate(self):
         pass

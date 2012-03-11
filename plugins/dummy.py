@@ -1,5 +1,5 @@
 import dnslog
-import log
+import logging
 from yapsy.IPlugin import IPlugin
 
 class DummynAnalysis(IPlugin):
@@ -9,7 +9,6 @@ class DummynAnalysis(IPlugin):
         for entry in entries:
             date, ip, domain = entry[dnslog.DATE], entry[dnslog.SOURCE_IP], entry[dnslog.DOMAIN]
     def collect(self):
-        logger = log.get_global_logger()
-        logger.info("dummy analysis finished successfully")
+        logging.info("dummy analysis finished successfully")
     def deactivate(self):
         pass

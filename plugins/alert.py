@@ -4,9 +4,10 @@ import jinja2
 import multiprocessing
 import os
 import pymongo
+import uuid
 
 import dnslog
-import log
+import logging
 import mail
 import settings
 import util
@@ -27,7 +28,7 @@ class AlertAnalysis(yapsy.IPlugin.IPlugin):
                 entry[dnslog.DATE], entry[dnslog.SOURCE_IP], entry[dnslog.DOMAIN], entry[dnslog.RESOLVE_STATE], entry[dnslog.RESOLVE_DETAIL])
             if  resolve_state != "success" or "aa" not in resolve_detail:
                 counter[round_minutes_by_5(date).strftime("%y-%m-%d %H:%M")+  "#" + domain + "#" + resolve_state + "#" + resolve_detail] += 1
-        cPickle.dump(counter, open(os.path.join(AlertAnalysis.OUTPUTPATH, str(os.getpid()) + ".pickle"), "w"), cPickle.HIGHEST_PROTOCOL)
+        cPickle.dump(counter, open(os.path.join(AlertAnalysis.OUTPUTPATH, "%s.pickle" % uuid.uuid4().hex), "w"), cPickle.HIGHEST_PROTOCOL)
 
     @util.ensure_directory(OUTPUTPATH)
     def collect(self):
@@ -47,7 +48,6 @@ class AlertAnalysis(yapsy.IPlugin.IPlugin):
         email_proc = multiprocessing.Process(target=mail.send_email, args=(msg,))
         email_proc.start()
 
-        logger = log.get_global_logger()
-        logger.info("alert analysis finished successfully")
+        logging.info("alert analysis finished successfully")
     def deactivate(self):
         pass
