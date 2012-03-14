@@ -1,3 +1,4 @@
+.PHONY: test run cover tags clean emulate
 test:
 	@ python tests/run_tests.py
 run: 
@@ -6,7 +7,10 @@ cover:
 	coverage run --branch tests/run_tests.py
 	coverage html --omit="/usr/*,log_analysis/tests/*"
 	google-chrome htmlcov/index.html
+tags:
+	find log_analysis -name "*.py" | xargs ctags
 clean:
+	- rm tags
 	- rm .coverage
 	- rm htmlcov -rf
 	- rm output -rf
