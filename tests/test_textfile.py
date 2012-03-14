@@ -4,7 +4,7 @@ import textfile
 import settings
 from util import ensure_directory
 
-tmpdir = os.path.join(settings.APP_DIR, "tmp")
+tmpdir = os.path.join(settings.APP_DIR, "../tmp")
 
 class TestGetFileSize(unittest.TestCase):
     @ensure_directory(tmpdir)

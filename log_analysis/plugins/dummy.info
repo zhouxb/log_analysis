@@ -1,0 +1,3 @@
+[Core]
+Name = Dummy Analysis
+Module = dummy
