@@ -1,7 +1,10 @@
 *.pyc
 *.log
+*.*.swp
+output/*
+data/*
+database/*
 tmp
 tags
 htmlcov
-output/*
-*.*.swp
+dist

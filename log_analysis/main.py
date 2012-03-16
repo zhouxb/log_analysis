@@ -2,6 +2,7 @@
 '''
 main module of log_analysis
 '''
+import argparse
 import puremvc.patterns.facade
 import controller
 
@@ -40,8 +41,9 @@ class AppFacade(puremvc.patterns.facade.Facade):
         for name, cmd in command_table:
             super(AppFacade, self).registerCommand(name, cmd)
 def main():
+    parser = argparse.ArgumentParser("A DNS Log Analysis Program")
+    parser.parse_args()
     AppFacade.getInstance()
 
 if __name__ == "__main__":
     main()
-

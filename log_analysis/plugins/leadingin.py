@@ -1,10 +1,11 @@
 import os
-import logging
-import settings
 import cPickle
-import util
+import logging
 import uuid
-import pymongo
+
+import util
+import model
+import settings
 
 from yapsy.IPlugin import IPlugin
 from dnslog import DATE, DOMAIN, RESOLVE_DETAIL, is_silent, in_whitelist, \
@@ -24,8 +25,8 @@ class LeadingInAnalysis(IPlugin):
         self.domain_cache = self.load_domain_cache(self.domain_cache_path)
 
     def analysis(self, entries):
-        uncached_domain, changed_domain = self.do_analysis(self.domain_cache, 
-                                                           entries)
+        uncached_domain, changed_domain = \
+                self.do_analysis(self.domain_cache, entries)
         self.save_partial_result(uncached_domain, changed_domain)
 
     def collect(self):
@@ -49,17 +50,11 @@ class LeadingInAnalysis(IPlugin):
 
     @util.ensure_directory(OUTPUTPATH)
     def save_partial_result(self, uncached_domain, changed_domain):
-        uncached_domain_filename = "%s-uncached_domain.pickle" % uuid.uuid4()
-        uncached_domain_fullpath = os.path.join(OUTPUTPATH, 
-                                                uncached_domain_filename)
-        cPickle.dump(uncached_domain, open(uncached_domain_fullpath,"w"), 
-                     cPickle.HIGHEST_PROTOCOL)
-
-        changed_domain_filename = "%s-changed_domain.pickle" % uuid.uuid4()
-        changed_domain_fullpath = os.path.join(OUTPUTPATH, 
-                                               changed_domain_filename)
-        cPickle.dump(changed_domain, open(changed_domain_fullpath,"w"), 
-                     cPickle.HIGHEST_PROTOCOL)
+        for data, suffix in zip([ uncached_domain,   changed_domain],
+                                ["uncached_domain", "changed_domain"]):
+            filename = "%s-%s.pickle" % (uuid.uuid4().hex, suffix)
+            fullpath = os.path.join(OUTPUTPATH, filename)
+            cPickle.dump(data, open(fullpath, "w"), cPickle.HIGHEST_PROTOCOL)
 
     @util.ensure_directory(OUTPUTPATH)
     def do_collect(self):
@@ -67,12 +62,12 @@ class LeadingInAnalysis(IPlugin):
                                  map(util.load_and_delete,
                                      filter(lambda name: name.endswith("uncached_domain.pickle"),
                                             util.listdir(OUTPUTPATH))),
-                                set())
+                                 set())
         changed_domain = reduce(lambda x, y: x.update(y) or x,
                                 map(util.load_and_delete,
                                     filter(lambda name: name.endswith("changed_domain.pickle"),
                                            util.listdir(OUTPUTPATH))),
-                               dict())
+                                dict())
         return uncached_domain, changed_domain
 
     @util.ensure_directory(OUTPUTPATH)
@@ -83,13 +78,7 @@ class LeadingInAnalysis(IPlugin):
 
         batch = [{"domain": domain, "date": date} \
                  for domain, date in changed_domain.items()]
-        con = pymongo.Connection(settings.MONGODB_SERVER, 
-                                 settings.MONGODB_SERVER_PORT)
-        if batch:
-            db = con.leadingin
-            db.ensure_index(("domain", -1), ("date", -1), 
-                            deprecated_unique = True)
-            db.leadingin.insert(batch, continue_on_error = True)
-
+        m = model.LeadingInDomainModel(batch)
+        m.save()
     def deactivate(self):
         pass

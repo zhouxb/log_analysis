@@ -17,8 +17,7 @@ chunk =  \
 58.68.239.29;|default;|A|success|+|------- qr aa rd ra |205|
 '''
 
-
-class TestLeadingInAnalysis(unittest.TestCase):
+class TestLeadingInDomainAnalysis(unittest.TestCase):
     def setUp(self):
         manager = yapsy.PluginManager.PluginManager(plugin_info_ext="info")
         manager.setPluginPlaces([settings.PLUGINS_PATH])
@@ -60,3 +59,6 @@ class TestLeadingInAnalysis(unittest.TestCase):
                                                              entries)
         self.assertEqual(uncached_domain, set(["www.google.com"]))
         self.assertEqual(changed_domain, {"www.sina.com": "201109011020"})
+
+    def test_do_collect(self):
+        pass

@@ -22,16 +22,20 @@ MONGODB_SERVER           = "localhost"
 MONGODB_SERVER_PORT      = 27017
 
 # sending email
-SMTP_SERVER              = "smtp.gmail.com"
-SMTP_PORT                = 587
+#SMTP_SERVER              = "smtp.gmail.com"
+#SMTP_PORT                = 587
+
+SMTP_SERVER              = "corp.chinacache.com"
+SMTP_PORT                = 25
+
 EMAIL_ACCOUNT            = "dreamersdw@gmail.com"
 EMAIL_PASSWORD           = "13ey0urself?yes001085"
 EMAIL_FROM               = "dreamersdw@gmail.com"
-EMAIL_TO                 = ["dreamersdw@gmail.com"]
+EMAIL_TO                 = ["dawei.shi@chinacache.com"]
 
 
 # log
-APP_LOG_DIR              = os.path.join(APP_DIR, "output")
+APP_LOG_DIR              = os.path.join(APP_DIR, "../output")
 APP_LOG_FILENAME         = "analysis.log"
 APP_LOG_LEVEL            = logging.DEBUG
 APP_LOG_FORMAT           = "%(asctime)s - %(levelname)s - %(message)s"

@@ -14,7 +14,7 @@ import util
 import yapsy.IPlugin
 
 class AlertAnalysis(yapsy.IPlugin.IPlugin):
-    OUTPUTPATH = os.path.join(settings.APP_DIR, "output/alert")
+    OUTPUTPATH = os.path.join(settings.APP_OUTPUT_DIR, "alert")
 
     def activate(self):
         pass
@@ -45,7 +45,7 @@ class AlertAnalysis(yapsy.IPlugin.IPlugin):
         sorted(alerts, key=lambda record: record[0])
 
         msg = jinja2.Template(open(os.path.join(settings.TEMPLATE_DIR, "alert_email.tpl")).read().decode("utf-8")).render(alerts=alerts)
-        email_proc = multiprocessing.Process(target=mail.send_email, args=(msg,))
+        email_proc = multiprocessing.Process(target=mail.send_html_mail, args=("DNS Alert", msg))
         email_proc.start()
 
         logging.info("alert analysis finished successfully")

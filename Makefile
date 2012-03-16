@@ -1,4 +1,4 @@
-.PHONY: test run cover tags clean emulate
+.PHONY: test run cover tags clean emulate dist
 test:
 	@ python tests/run_tests.py
 run: 
@@ -11,10 +11,12 @@ tags:
 	find log_analysis -name "*.py" | xargs ctags
 clean:
 	- rm tags
+	- rm dist -rf
 	- rm .coverage
 	- rm htmlcov -rf
 	- rm output -rf
 	- rm tmp -rf
+	- rm *.egg-info -rf
 	- rm log_analysis/*.pyc
 	- mongo domain   --eval "db.dropDatabase()"
 	- mongo ip       --eval "db.dropDatabase()"
@@ -22,3 +24,6 @@ clean:
 	- mongo newdomain --eval "db.dropDatabase()"
 emulate:
 	cp data/queries.log.gz data/queries.log.CMN-CQ-2-375.20120217223800.gz
+dist:
+	python setup.py sdist
+	pip bundle dist/myapp.pybundle dist/log_analysis-*.tar.gz
