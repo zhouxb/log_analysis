@@ -73,3 +73,18 @@ def split_every(num, iterable):
         if not n_items:
             break
         yield n_items
+
+def ip_to_int(ip):
+    '''
+    Conert an ip address like '192.168.1.1' into a 32-bit integer
+    '''
+    a, b, c, d = ip.split(".")
+    return int(a) * 256**3 + int(b) * 256**2 + int(c) * 256 + int(d)
+
+def ip_range_to_int(begin, end):
+    '''
+    Conert a range of ips to integers
+    '''
+    begin_int = ip_to_int(begin)
+    end_int   = ip_to_int(end)
+    return range(begin_int, end_int+1)

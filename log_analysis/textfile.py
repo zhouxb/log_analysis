@@ -1,6 +1,5 @@
 # textfile is a module contains many useful functions dealing with tough tasks
 import os
-import itertools
 
 def get_file_size(filename):
     '''Return the exact size of a given file, it's said this is a way more

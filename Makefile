@@ -1,8 +1,8 @@
 .PHONY: test run cover tags clean emulate dist
 test:
-	@ python tests/run_tests.py
+	@ python -t tests/run_tests.py
 run: 
-	./log_analysis/main.py
+	python -t log_analysis/main.py
 cover:
 	coverage run --branch tests/run_tests.py
 	coverage html --omit="/usr/*,log_analysis/tests/*"
@@ -22,6 +22,7 @@ clean:
 	- mongo ip       --eval "db.dropDatabase()"
 	- mongo alert    --eval "db.dropDatabase()"
 	- mongo newdomain --eval "db.dropDatabase()"
+	- mongo leadingin --eval "db.dropDatabase()"
 emulate:
 	cp data/queries.log.gz data/queries.log.CMN-CQ-2-375.20120217223800.gz
 dist:

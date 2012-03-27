@@ -41,3 +41,17 @@ class TestSplitEvery(unittest.TestCase):
         # n is bigger than the length of iterable
         result = list(util.split_every(5, [1, 2, 3, 4]))
         self.assertEqual(result, [[1, 2, 3, 4]])
+
+class TestIPConvert(unittest.TestCase):
+    def test_ip_to_int(self):
+        self.assertEqual(util.ip_to_int("0.0.0.0"), 0)
+        self.assertEqual(util.ip_to_int("0.0.0.1"), 1)
+        self.assertEqual(util.ip_to_int("74.125.114.92"), 1249735260)
+
+    def test_ip_ranges_to_int(self):
+        self.assertTrue(util.ip_to_int("192.168.0.15") in 
+                        util.ip_range_to_int("192.168.0.0", "192.168.1.1"))
+        self.assertTrue(util.ip_to_int("192.168.0.0") in 
+                        util.ip_range_to_int("192.168.0.0", "192.168.1.1"))
+        self.assertTrue(util.ip_to_int("192.168.1.1") in 
+                        util.ip_range_to_int("192.168.0.0", "192.168.1.1"))

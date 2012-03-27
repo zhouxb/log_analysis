@@ -1,5 +1,6 @@
 import os
 import gzip
+import argparse
 import multiprocessing
 
 import main
@@ -18,9 +19,34 @@ class StartupCommand(SimpleCommand, ICommand):
         log_queue = log.global_log_queue
         log_proc = multiprocessing.Process(target=log.run_log_listener, 
                                            args=(log_queue,))
+        log_proc.daemon = True
         log_proc.start()
+        self.sendNotification(main.AppFacade.PARSEARGS)
+
+class ParseArgsCommand(SimpleCommand, ICommand):
+    def execute(self, note):
+        parser = argparse.ArgumentParser("log_analysis")
+        parser.add_argument("--daemon", action="store_true",
+                                        help="start as daemon")
+        parser.add_argument("--file",   help="dns log file to analysis")
+        parser.add_argument("--check",  help="check configure file")
+        result = parser.parse_args()
         
-        logging.info("app starts")
+        if result.daemon:
+            self.sendNotification(main.AppFacade.MONIT)
+        else:
+            if result.file:
+                filename = os.path.abspath(result.file)
+                self.sendNotification(main.AppFacade.PREPROCESS, filename)
+            if result.check:
+                user_settings = {}
+                execfile(result.check, {}, user_settings)
+                print user_settings
+        
+class StartDaemonCommand(SimpleCommand, ICommand):
+    def execute(self, note):
+        
+        logging.info("starts log analysis daemon")
         self.sendNotification(main.AppFacade.MONIT)
 
 class MonitCommand(SimpleCommand, ICommand):
@@ -31,17 +57,17 @@ class MonitCommand(SimpleCommand, ICommand):
 
 class PreprocessCommand(SimpleCommand, ICommand):
     def execute(self, note):
-		filename = note.body
-		basename = os.path.basename(filename)
-		match = settings.DNS_LOG_FILENAME_PATTERN.match(basename)
-		if not match:
-			logging.warning("filename %s doesn't match pattern in settings.py \
+        filename = note.body
+        basename = os.path.basename(filename)
+        match = settings.DNS_LOG_FILENAME_PATTERN.match(basename)
+        if not match:
+            logging.warning("filename %s doesn't match pattern in settings.py \
 , ignore it" % filename)
-			return
-		settings.PROVINCE = match.group("PROVINCE")
-		fileobj = gzip.open(filename)
-		logging.info("open %s" % filename)
-		self.sendNotification(main.AppFacade.ANALYSIS, fileobj)
+            return
+        settings.PROVINCE = match.group("PROVINCE")
+        fileobj = gzip.open(filename)
+        logging.info("open %s" % filename)
+        self.sendNotification(main.AppFacade.ANALYSIS, fileobj)
 
 class AnalysisCommand(SimpleCommand, ICommand):
     def execute(self, note):

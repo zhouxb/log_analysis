@@ -2,12 +2,13 @@
 '''
 main module of log_analysis
 '''
-import argparse
 import puremvc.patterns.facade
 import controller
 
 class AppFacade(puremvc.patterns.facade.Facade):
     STARTUP     = "startup"
+    PARSEARGS   = "parseargs"
+    STARTDAEMON = "startdaemon"
     MONIT       = "monit"
     PREPROCESS  = "preprocess"
     ANALYSIS    = "analysis"
@@ -31,6 +32,8 @@ class AppFacade(puremvc.patterns.facade.Facade):
 
         command_table = [
             (AppFacade.STARTUP     , controller.StartupCommand)     , 
+            (AppFacade.STARTDAEMON , controller.StartDaemonCommand) ,
+            (AppFacade.PARSEARGS   , controller.ParseArgsCommand)   ,
             (AppFacade.MONIT       , controller.MonitCommand)       , 
             (AppFacade.PREPROCESS  , controller.PreprocessCommand)  , 
             (AppFacade.ANALYSIS    , controller.AnalysisCommand)    , 
@@ -41,8 +44,6 @@ class AppFacade(puremvc.patterns.facade.Facade):
         for name, cmd in command_table:
             super(AppFacade, self).registerCommand(name, cmd)
 def main():
-    parser = argparse.ArgumentParser("A DNS Log Analysis Program")
-    parser.parse_args()
     AppFacade.getInstance()
 
 if __name__ == "__main__":

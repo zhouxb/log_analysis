@@ -21,8 +21,6 @@ def send_html_mail(subject, content):
 
     logging.info("sending an email to users")
     smtp = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
-    #smtp.starttls()
-    #smtp.login(settings.EMAIL_ACCOUNT, settings.EMAIL_PASSWORD)
     smtp.sendmail(email_from, email_to, msg.as_string())
     smtp.quit()
     logging.info("the email was sent successfully")

@@ -1,0 +1,11 @@
+Feature: Run log_analysis
+
+    Scenario: Run log_analysis with an empty gz-compressed file
+        Given I have an empty gz-compressed file in data/queries.log.CMN-CQ-2-375.0000000000.gz
+        When I run log_analysis on it
+        Then I see the number 1
+
+    Scenario: Run log_analysis with an gz-compressed file
+        Given I have an gz-compressed file in data/queries.log.CMN-CQ-2-375.20120217223800.gz
+        When I run log_analysis on it
+        Then I see the number 1

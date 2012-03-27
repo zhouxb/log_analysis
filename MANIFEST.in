@@ -1,0 +1,3 @@
+recursive-include log_analysis/plugins *.info
+include log_analysis/log_analysis.conf
+
