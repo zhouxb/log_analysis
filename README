@@ -1,2 +1,30 @@
 DNS日志处理
 创建develop分支
+
+== 系统依赖 ==
+1. 32 位 或 64 位 Linux 系统，推荐使用 64 位版本。
+1. Python 2.7 或更高版本
+    如果系统自带版本过低，可按如下方法安装更高版本：
+    $ wget http://www.python.org/ftp/python/2.7.2/Python-2.7.2.tar.bz2 -O Python-2.7.2.tar.bz2
+    $ tar xjvf Python-2.7.2.tar.bz2
+    $ cd Python-2.7.2
+    $ ./configure
+    $ sudo make install
+2. pip 1.1 或更高版本
+    $ wget http://pypi.python.org/packages/source/p/pip/pip-1.1.tar.gz -O pip-1.1.tar.gz
+    $ tar xzvf pip-1.1.tar.gz
+    $ cd pip-1.1
+    $ python2.7 setup.py install
+3. Mongodb 2.0 或更高版本 （在生产环境中，仅中心节点才需要安装）
+    $ wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-2.0.4.tgz -O mongodb-linux-x86_64-2.0.4.tgz
+    $ tar xzvf mongodb-linux-x86_64-2.0.4.tgz
+    $ cd mongdb*
+
+== 安装 ==
+    1. 安装程序
+        $ pip install log_analysis-*.pybundle
+    2. 修改配置文件
+        $ vi /etc/log_analysis.conf
+
+== 运行 ==
+    $ log_analysis --daemon

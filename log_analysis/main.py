@@ -4,6 +4,7 @@ main module of log_analysis
 '''
 import puremvc.patterns.facade
 import controller
+import time
 
 class AppFacade(puremvc.patterns.facade.Facade):
     STARTUP     = "startup"
@@ -48,3 +49,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # make sure log process finished everything
+    time.sleep(1)

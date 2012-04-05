@@ -26,6 +26,7 @@ class AlertAnalysis(yapsy.IPlugin.IPlugin):
         self.top100 = self.get_top100()
         self.cc_ips = self.get_cc_ip()
         self.cache_model = model.AlertCacheModel
+        self.db_model  = model.AlertDBModel
 
     def get_top100(self):
         m = model.Top100DomainnModel()
@@ -75,22 +76,12 @@ class AlertAnalysis(yapsy.IPlugin.IPlugin):
         return whole_result
 
     def save_whole_result(self, whole_result):
-        print whole_result
-        #batch = []
-        #alerts = []
-        #for key, count in whole_result.items():
-            #date, domain, resolve_state, resolve_detail = key.split("#")
-            #batch.append(({"domain":domain, "date": date, 
-                           #"resolve_state": resolve_state, "resolve_detail":
-                           #resolve_detail}, {"count" : count}))
-            #alerts.append(dict(date=date, domain=domain,
-                               #resolve_state=resolve_state,
-                               #resolve_detail=resolve_detail, count=count))
-
-        #m = model.AlertModel(batch)
-        #m.save()
-
-        #self.alert(alerts)
+        batch = []
+        for key, value in whole_result.items():
+            date, domain = key.split("#")
+            batch.append({"date": date, "domain": domain, "ips": value})
+        self.alert(batch)
+        self.db_model(batch).save()
 
     def alert(self, stastics):
         tpl = open(os.path.join(settings.TEMPLATE_DIR,

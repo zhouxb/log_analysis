@@ -49,7 +49,16 @@ class DomainAnalysis(yapsy.IPlugin.IPlugin):
 
     def save_whole_result(self, whole_result):
         batch = whole_result.values()
-        self.db_model(batch).save()
+        self.db_model(self.select_top_n(batch, 150)).save()
+
+    def select_top_n(self, batch, n):
+        topdomain = []
+        for code in ["w", "B", "G", "-"]:
+            domains = sorted([item for item in batch if item["namelist"] == code], 
+                                 key=lambda item: item["count"], 
+                                 reverse=True)[:n]
+            topdomain += domains
+        return topdomain
 
     def deactivate(self):
         pass

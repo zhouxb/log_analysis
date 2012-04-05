@@ -14,5 +14,5 @@ class TestAlsertPlugin(unittest.TestCase):
         pass
 
     def test_load_plugin(self):
-        plugin = self.manager.getPluginByName("Non-80 Port Query Analysis")
+        plugin = self.manager.getPluginByName("non80")
         self.assertIsNotNone(plugin)

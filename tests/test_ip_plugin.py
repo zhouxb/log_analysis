@@ -13,5 +13,5 @@ class TestAlsertPlugin(unittest.TestCase):
         pass
 
     def test_load_plugin(self):
-        plugin = self.manager.getPluginByName("IP Analysis")
+        plugin = self.manager.getPluginByName("ip")
         self.assertIsNotNone(plugin)

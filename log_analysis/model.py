@@ -78,12 +78,24 @@ class IPDBModel(DBModel):
     query_keys    = ["date", "ip"]
     update_keys   = [("$inc", "count")]
 
-class AlertModel(DBModel):
+class AlertDBModel(DBModel):
     database      = "alert"
     collection    = "minutely"
     indexes       = [("date", -1), ("domain", 1)]
     unique_index  = None
-    save_method   = "insert"
+    save_method   = "update"
+    query_keys    = ["date", "domain"]
+    def _update(self, coll):
+        for entry in self.data:
+            query = {key: entry[key] for key in self.query_keys}
+            query["province"] = settings.PROVINCE
+
+            ipcount = {}
+            for ip, count in entry["ips"].items():
+                ipcount["ips.%s" % ip.replace('.', '#')] = count
+
+            update = {"$inc": ipcount}
+            coll.update(query, update, upsert=self.upsert)
 
 class LeadingInDomainModel(DBModel):
     database     = "leadingindomain"

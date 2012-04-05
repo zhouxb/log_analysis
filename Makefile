@@ -23,6 +23,7 @@ clean:
 	- mongo alert    --eval "db.dropDatabase()"
 	- mongo newdomain --eval "db.dropDatabase()"
 	- mongo leadingin --eval "db.dropDatabase()"
+	- mongo non80     --eval "db.dropDatabase()"
 emulate:
 	cp data/queries.log.gz data/queries.log.CMN-CQ-2-375.20120217223800.gz
 dist:

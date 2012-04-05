@@ -22,7 +22,7 @@ class TestLeadingInDomainAnalysis(unittest.TestCase):
         manager = yapsy.PluginManager.PluginManager(plugin_info_ext="info")
         manager.setPluginPlaces([settings.PLUGINS_PATH])
         manager.collectPlugins()
-        plugin = manager.getPluginByName("Leading In Analysis").plugin_object
+        plugin = manager.getPluginByName("leadingin").plugin_object
         self.plugin = plugin
 
     def tearDown(self):

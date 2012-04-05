@@ -21,16 +21,21 @@ class StartupCommand(SimpleCommand, ICommand):
                                            args=(log_queue,))
         log_proc.daemon = True
         log_proc.start()
+        logging.info("App starts")
         self.sendNotification(main.AppFacade.PARSEARGS)
 
 class ParseArgsCommand(SimpleCommand, ICommand):
     def execute(self, note):
         parser = argparse.ArgumentParser("log_analysis")
-        parser.add_argument("--daemon", action="store_true",
-                                        help="start as daemon")
-        parser.add_argument("--file",   help="dns log file to analysis")
-        parser.add_argument("--check",  help="check configure file")
+        parser.add_argument("--daemon",  action="store_true",
+                                         help="start as daemon")
+        parser.add_argument("--file",    help="dns log file to analysis")
+        parser.add_argument("--check",   help="check configure file")
+        parser.add_argument("--plugins", help="plugins to load", nargs="*")
         result = parser.parse_args()
+
+        if result.plugins:
+            settings.PLUGINS = result.plugins
         
         if result.daemon:
             self.sendNotification(main.AppFacade.MONIT)
@@ -38,10 +43,6 @@ class ParseArgsCommand(SimpleCommand, ICommand):
             if result.file:
                 filename = os.path.abspath(result.file)
                 self.sendNotification(main.AppFacade.PREPROCESS, filename)
-            if result.check:
-                user_settings = {}
-                execfile(result.check, {}, user_settings)
-                print user_settings
         
 class StartDaemonCommand(SimpleCommand, ICommand):
     def execute(self, note):
@@ -53,6 +54,7 @@ class MonitCommand(SimpleCommand, ICommand):
     def execute(self, note):
         func = lambda filename: \
             self.sendNotification(main.AppFacade.PREPROCESS, filename)
+        # NOTE: may be failure
         monitor.monit_directory(settings.DNS_LOG_DIR, func)
 
 class PreprocessCommand(SimpleCommand, ICommand):
@@ -64,8 +66,11 @@ class PreprocessCommand(SimpleCommand, ICommand):
             logging.warning("filename %s doesn't match pattern in settings.py \
 , ignore it" % filename)
             return
-        settings.PROVINCE = match.group("PROVINCE")
-        fileobj = gzip.open(filename)
+        try:
+            fileobj = gzip.open(filename)
+        except:
+            logging.error("can't open %s as a gzip file")
+            return
         logging.info("open %s" % filename)
         self.sendNotification(main.AppFacade.ANALYSIS, fileobj)
 

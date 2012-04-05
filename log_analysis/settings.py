@@ -54,6 +54,10 @@ PLUGINS_PATH             = os.path.join(APP_DIR, "plugins")
 APP_OUTPUT_DIR           = os.path.join(APP_DIR, "../output")
 
 
+PLUGINS                  = ["domain", "ip", "newdomain", "leadingin", "non80",
+                            "alert", "dummy"]
+
+
 
 def update_settings():
     cur_module = sys.modules[__name__]

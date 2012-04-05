@@ -43,7 +43,7 @@ class IPAnalysis(yapsy.IPlugin.IPlugin):
 
 	def save_whole_result(self, whole_result):
 		batch = []
-		for key, count in whole_result.items():
+		for key, count in whole_result.most_common(150):
 			date, ip = key.split("#")
 			batch.append({"ip":ip, "date": date, "count" : count})
 		self.db_model(batch).save()

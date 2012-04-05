@@ -13,5 +13,5 @@ class TestAlsertPlugin(unittest.TestCase):
         pass
 
     def test_load_plugin(self):
-        plugin = self.manager.getPluginByName("New Domain Analysis")
+        plugin = self.manager.getPluginByName("newdomain")
         self.assertIsNotNone(plugin)

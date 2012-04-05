@@ -3,6 +3,7 @@ import logging
 import util
 import dnslog
 import os
+import settings
 
 import yapsy.PluginManager
 from multiprocessing import Queue, Process
@@ -52,4 +53,5 @@ def load_plugins(path):
     manager.collectPlugins()
     for plugin in manager.getAllPlugins():
         plugin.plugin_object.activate()
-        yield plugin.plugin_object
+        if plugin.name in settings.PLUGINS:
+            yield plugin.plugin_object
